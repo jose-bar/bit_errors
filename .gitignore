@@ -1,0 +1,15 @@
+# Build artifacts
+build/
+BLAKE3/
+
+# Optional but recommended
+*.o
+*.a
+*.so
+*.out
+*.exe
+*.log
+
+# Editor junk
+.vscode/
+.idea/
