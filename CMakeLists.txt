@@ -29,9 +29,12 @@ set_source_files_properties(BLAKE3/c/blake3_avx2.c PROPERTIES COMPILE_FLAGS "-ma
 set_source_files_properties(BLAKE3/c/blake3_avx512.c PROPERTIES COMPILE_FLAGS "-mavx512f -mavx512vl")
 
 add_executable(global_hash global_hash.cpp ${BLAKE3_SOURCES})
-
 target_include_directories(global_hash PRIVATE BLAKE3/c)
 target_link_libraries(global_hash ${OpenFHE_LIBRARIES})
+
+add_executable(flat_chunked flat_chunked.cpp ${BLAKE3_SOURCES})
+target_include_directories(flat_chunked PRIVATE BLAKE3/c)
+target_link_libraries(flat_chunked ${OpenFHE_LIBRARIES})
 
 set_target_properties(global_hash PROPERTIES
     CXX_STANDARD 17

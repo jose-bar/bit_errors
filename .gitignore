@@ -1,6 +1,7 @@
 # Build artifacts
 build/
 BLAKE3/
+Reed-Solomon/
 
 # Optional but recommended
 *.o

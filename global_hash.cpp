@@ -24,7 +24,7 @@ using namespace lbcrypto;
 // Configs
 const int NUM_CTS = 10;
 const int BATCH_SIZE = 8192;
-const double TARGET_BER = 1e-6; // bit error ratwe
+const double TARGET_BER = 1e-6; // bit error rate
 
 std::string blake3(const std::string& data){
     blake3_hasher hasher;
@@ -42,6 +42,8 @@ std::string blake3(const std::string& data){
 }
 
 void inject_noise(std::string& data, double ber){
+    if(ber <= 0) return;
+
     static std::mt19937 gen(123456);
     static std::uniform_real_distribution<> dis(0.0, 1.0);
 
@@ -79,8 +81,8 @@ void sender(const CryptoContext<DCRTPoly>& cc, const KeyPair<DCRTPoly>& kp){
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "[Sender] Package Size: " << serialized.size() / (1024 * 1024) << " MB" << std::endl;
     std::cout << "[Sender] Hash Time: " << std::chrono::duration<double>(end - start).count() << " s" << std::endl;
-    std::cout << "[Sender] Encryption Time per CT: "
-         << std::accumulate(encryption_times.begin(), encryption_times.end(), 0.0) / NUM_CTS << " s" << std::endl;
+    std::cout << "[Sender] Encryption for " << NUM_CTS << " CT: "
+         << std::accumulate(encryption_times.begin(), encryption_times.end(), 0.0) << " s" << std::endl;
     std::ofstream out_file("package.bin", std::ios::binary);
 
     uint32_t hash_size = hash.size();
@@ -126,10 +128,11 @@ void receiver(){
             valid_package = package;
             std::cout << "[Receiver] Package verified successfully after " << tries << " tries." << std::endl;
         }else{
-            std::cout << "[Receiver] Package verification failed, retrying..." << std::endl;
+            if(tries % 10 == 0)
+                std::cout << "[Receiver] Chunk verification failed after " << tries << " tries, retrying..." << std::endl;
         }
 
-        if(tries >= 5){
+        if(tries >= 100){
             std::cerr << "[Receiver] Failed to verify package after " << tries << " tries, giving up." << std::endl;
             break;
         }
