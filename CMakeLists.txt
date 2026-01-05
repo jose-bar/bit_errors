@@ -41,6 +41,10 @@ target_include_directories(hash_ecc PRIVATE BLAKE3/c)
 target_include_directories(hash_ecc PRIVATE Reed-Solomon/include)
 target_link_libraries(hash_ecc ${OpenFHE_LIBRARIES})
 
+add_executable(merkle_tree merkle_tree.cpp ${BLAKE3_SOURCES})
+target_include_directories(merkle_tree PRIVATE BLAKE3/c)
+target_link_libraries(merkle_tree ${OpenFHE_LIBRARIES})
+
 set_target_properties(global_hash PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
