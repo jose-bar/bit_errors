@@ -36,6 +36,11 @@ add_executable(flat_chunked flat_chunked.cpp ${BLAKE3_SOURCES})
 target_include_directories(flat_chunked PRIVATE BLAKE3/c)
 target_link_libraries(flat_chunked ${OpenFHE_LIBRARIES})
 
+add_executable(hash_ecc hash_ecc.cpp ${BLAKE3_SOURCES})
+target_include_directories(hash_ecc PRIVATE BLAKE3/c)
+target_include_directories(hash_ecc PRIVATE Reed-Solomon/include)
+target_link_libraries(hash_ecc ${OpenFHE_LIBRARIES})
+
 set_target_properties(global_hash PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
