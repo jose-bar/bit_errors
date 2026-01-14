@@ -2,6 +2,7 @@
 build/
 BLAKE3/
 Reed-Solomon/
+.ber/
 
 # Optional but recommended
 *.o

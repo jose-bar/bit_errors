@@ -25,7 +25,7 @@ const int NUM_CTS = 10;
 const int BATCH_SIZE = 8192;
 const size_t CHUNK_SIZE = 16 * 1024; // 16KB
 const size_t HASH_SIZE = 32;         // BLAKE3 Default
-const double TARGET_BER = 1e-5;      // Moderate Noise
+const double TARGET_BER = 1e-5;    
 
 // ---------------- BLAKE3 ----------------
 std::vector<uint8_t> blake3_hash(const void* data, size_t len) {
@@ -111,18 +111,27 @@ private:
 };
 
 // ---------------- NOISE ----------------
-void inject_noise(std::vector<uint8_t>& data, double ber) {
-    if (ber <= 0) return;
-    static std::mt19937 rng(1337);
-    std::uniform_real_distribution<> p(0.0, 1.0);
-    std::uniform_int_distribution<> bit(0, 7);
+template <typename ByteContainer>
+void inject_noise(ByteContainer& data, double ber) {
+    if (ber <= 0.0) return;
 
-    // Optimization: Skip bytes to simulate sparse error
-    // For large buffers, iterating every byte is slow if BER is low.
-    for (size_t i = 0; i < data.size(); ++i) {
-         if (p(rng) < ber * 8) data[i] ^= (1 << bit(rng));
+    static std::mt19937 gen(123456);
+    static std::uniform_real_distribution<double> dis(0.0, 1.0);
+
+    for (auto& b : data) {
+        uint8_t byte = static_cast<uint8_t>(b);
+
+        for (int bit = 0; bit < 8; ++bit) {
+            if (dis(gen) < ber) {
+                byte ^= (1u << bit);
+            }
+        }
+
+        b = static_cast<typename ByteContainer::value_type>(byte);
     }
 }
+
+
 
 // ---------------- SERVER SIMULATION ----------------
 std::vector<uint8_t> SERVER_DATA;
@@ -204,7 +213,6 @@ void run_receiver() {
     auto start_total = std::chrono::high_resolution_clock::now();
     
     // Pass local_data by reference. 
-    // Any change to local_data is immediately visible to local_tree.
     MerkleTree local_tree(local_data); 
     
     auto initial_root = local_tree.root();
@@ -258,8 +266,6 @@ void run_receiver() {
         q.push({t.id * 2 + 1, mid,     t.end});
     }
 
-    // FINAL VERIFICATION
-    // Clear the cache to force a full re-hash of the now-patched data
     local_tree.cache.clear(); 
     auto final_root = local_tree.root(); 
     auto end_total = std::chrono::high_resolution_clock::now();

@@ -44,18 +44,23 @@ std::string blake3(const std::string& data){
     return ss.str();
 }
 
-void inject_noise(std::vector<uint8_t>& data, double ber){
-    if(ber <= 0) return;
+template <typename ByteContainer>
+void inject_noise(ByteContainer& data, double ber) {
+    if (ber <= 0.0) return;
 
     static std::mt19937 gen(123456);
-    static std::uniform_real_distribution<> dis(0.0, 1.0);
+    static std::uniform_real_distribution<double> dis(0.0, 1.0);
 
-    for(size_t i = 0; i < data.size(); i++){
-        if(dis(gen) < ber * 8){
-            // flip random bit
-            int bit_pos = std::uniform_int_distribution<>(0, 7)(gen);
-            data[i] ^= (1 << bit_pos);
+    for (auto& b : data) {
+        uint8_t byte = static_cast<uint8_t>(b);
+
+        for (int bit = 0; bit < 8; ++bit) {
+            if (dis(gen) < ber) {
+                byte ^= (1u << bit);
+            }
         }
+
+        b = static_cast<typename ByteContainer::value_type>(byte);
     }
 }
 
